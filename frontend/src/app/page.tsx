@@ -1,11 +1,11 @@
+"use client";
 import React from "react";
 import { Button } from "../components/ui/button";
+import { useAppData } from "../context/AppContext";
+import Loading from "../components/loading";
 const Home = () => {
-  return (
-    <div>
-      <Button>Click Me</Button>
-    </div>
-  );
+  const { loading } = useAppData();
+  return <div>{loading ? <Loading /> : <Button>Click Me</Button>}</div>;
 };
 
 export default Home;
