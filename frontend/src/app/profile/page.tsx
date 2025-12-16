@@ -15,6 +15,9 @@ interface UpdatePicResponse {
 }
 
 import toast from "react-hot-toast";
+import Loading from "@/components/loading";
+import { Facebook, Instagram, Linkedin } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const ProfilePage = () => {
   const InputRef = useRef<HTMLInputElement>(null);
@@ -60,24 +63,84 @@ const ProfilePage = () => {
   const { user, setUser } = useAppData();
   return (
     <div className="flex justify-center items-center min-h-screen p-4">
-      <Card className="w-full max-w-xl shadow-lg border rounded-2xl p-6">
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-semibold">Profile</CardTitle>
+      {loading ? (
+        <Loading />
+      ) : (
+        <Card className="w-full max-w-xl shadow-lg border rounded-2xl p-6">
+          <CardHeader className="text-center">
+            <CardTitle className="text-2xl font-semibold">Profile</CardTitle>
 
-          <CardContent className="flex flex-col items-center space-4">
-            <Avatar className="w-28 h-28 border-4 border-gray-200 shadow-md cursor-pointer">
-              <AvatarImage src={user?.image} alt="profile pic" />
-              <input
-                type="file"
-                className="hidden"
-                accept="image/*"
-                ref={InputRef}
-                onChange={changeHandler}
-              />
-            </Avatar>
-          </CardContent>
-        </CardHeader>
-      </Card>
+            <CardContent className="flex flex-col items-center space-4">
+              <Avatar
+                className="w-28 h-28 border-4 border-gray-200 shadow-md cursor-pointer"
+                onClick={clickHandler}
+              >
+                <AvatarImage src={user?.image} alt="profile pic" />
+                <input
+                  type="file"
+                  className="hidden"
+                  accept="image/*"
+                  ref={InputRef}
+                  onChange={changeHandler}
+                />
+              </Avatar>
+              <div className="w-full space-y-2 text-center">
+                <label className="font-medium">Name</label>
+                <p>{user?.name}</p>
+              </div>
+              {user?.bio && (
+                <div className="w-full space-y-2 text-center">
+                  <label className="font-medium">Bio</label>
+                  <p>{user.bio}</p>
+                </div>
+              )}
+              <div className="flex gap-4 mt-3">
+                {user?.instagram && (
+                  <a
+                    href={user.instagram}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <Instagram className="text-pink-500 text-2xl" />
+                  </a>
+                )}
+                {user?.instagram && (
+                  <a
+                    href={user.instagram}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <Instagram className="text-pink-500 text-2xl" />
+                  </a>
+                )}
+                {user?.facebook && (
+                  <a
+                    href={user.facebook}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <Facebook className="text-blue-500 text-2xl" />
+                  </a>
+                )}
+                {user?.linkedin && (
+                  <a
+                    href={user.linkedin}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <Linkedin className="text-blue-500 text-2xl" />
+                  </a>
+                )}
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-2 mt-6 w-full justify-center">
+                <Button>Logout</Button>
+                <Button>Add Blog</Button>
+              </div>
+            </CardContent>
+          </CardHeader>
+        </Card>
+      )}
     </div>
   );
 };
