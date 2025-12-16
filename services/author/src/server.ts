@@ -4,6 +4,7 @@ import { sql } from "./utils/db.js";
 import blogRoutes from "./routes/blog.js";
 import { v2 as cloudinary } from "cloudinary";
 import { connectRabbitMQ } from "./utils/rabbitmq.js";
+import cors from "cors";
 
 dotenv.config();
 
@@ -19,6 +20,8 @@ cloudinary.config({
   api_secret: process.env.Cloud_Api_Secret as string,
 });
 
+app.use(express.json());
+app.use(cors());
 // Routes
 app.use("/api/v1", blogRoutes);
 
