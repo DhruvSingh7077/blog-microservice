@@ -18,12 +18,36 @@ import toast from "react-hot-toast";
 import Loading from "@/components/loading";
 import { Facebook, Instagram, Linkedin } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogTrigger,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useRouter, redirect } from "next/navigation";
 
 const ProfilePage = () => {
+  const { user, setUser, logoutUser } = useAppData();
+
+  if (!user) return redirect("/login");
+  const logoutHandler = () => {
+    logoutUser();
+  };
   const InputRef = useRef<HTMLInputElement>(null);
 
   const [loading, setLoading] = useState(false);
-
+  const [open, setOpen] = useState(false);
+  const router = useRouter();
+  const [formData, setFormData] = useState({
+    name: user?.name || "",
+    instagram: user?.instagram || "",
+    facebook: user?.facebook || "",
+    linkedin: user?.linkedin || "",
+    bio: user?.bio || "",
+  });
   const clickHandler = () => {
     InputRef.current?.click();
   };
@@ -60,7 +84,35 @@ const ProfilePage = () => {
       }
     }
   };
-  const { user, setUser } = useAppData();
+
+  const handleFormSubmit = async () => {
+    try {
+      setLoading(true);
+      const token = Cookies.get("token");
+      const { data } = await axios.post<UpdatePicResponse>(
+        `${user_service}/api/v1/user/update`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      toast.success(data.message);
+      setLoading(false);
+      Cookies.set("token", data.token, {
+        expires: 7,
+        secure: true,
+        path: "/",
+      });
+      setUser(data.user);
+      setOpen(false);
+    } catch (error) {
+      toast.error("Update Failed");
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="flex justify-center items-center min-h-screen p-4">
       {loading ? (
@@ -134,8 +186,84 @@ const ProfilePage = () => {
               </div>
 
               <div className="flex flex-col sm:flex-row gap-2 mt-6 w-full justify-center">
-                <Button>Logout</Button>
-                <Button>Add Blog</Button>
+                <Button onClick={logoutHandler}>Logout</Button>
+                <Button onClick={() => router.push("/blog/new")}>
+                  Add Blog
+                </Button>
+
+                <Dialog open={open} onOpenChange={setOpen}>
+                  <DialogTrigger asChild>
+                    <Button variant={"outline"}>Edit Profile</Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-[500px]">
+                    <DialogHeader>
+                      <DialogTitle>Edit Profile</DialogTitle>
+                    </DialogHeader>
+
+                    <div className="space-y-3">
+                      <div>
+                        <Label>Name</Label>
+                        <Input
+                          value={formData.name}
+                          onChange={(e) =>
+                            setFormData({ ...formData, name: e.target.value })
+                          }
+                        />
+                      </div>
+                      <div>
+                        <Label>Bio</Label>
+                        <Input
+                          value={formData.bio}
+                          onChange={(e) =>
+                            setFormData({ ...formData, bio: e.target.value })
+                          }
+                        />
+                      </div>
+                      <div>
+                        <Label>instagram</Label>
+                        <Input
+                          value={formData.instagram}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              instagram: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+                      <div>
+                        <Label>Facebook</Label>
+                        <Input
+                          value={formData.facebook}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              facebook: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+                      <div>
+                        <Label>Linkedin</Label>
+                        <Input
+                          value={formData.linkedin}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              linkedin: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+                      <Button
+                        onClick={handleFormSubmit}
+                        className="w-full mt-4"
+                      >
+                        Save Changes
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
               </div>
             </CardContent>
           </CardHeader>
