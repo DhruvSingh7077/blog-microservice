@@ -31,6 +31,7 @@ const blogCategories = [
   "Study",
   "Finance",
 ];
+
 // Define the API response type
 interface BlogApiResponse {
   message: string;
@@ -75,9 +76,6 @@ const AddBlog = () => {
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
-    console.log("==============================================");
-    console.log("🚀 FORM SUBMISSION STARTED");
-    console.log("==============================================");
 
     setLoading(true);
 
@@ -91,29 +89,15 @@ const AddBlog = () => {
     if (formData.image) {
       formDataToSend.append("file", formData.image);
     }
-    console.log("📝 Form Data to Send:");
-    console.log("  - Title:", formData.title);
-    console.log("  - Description:", formData.description);
-    console.log("  - Category:", formData.category);
-    console.log("  - Content Length:", content.length, "characters");
-    console.log("  - Has Image:", !!formData.image);
 
     try {
       const token = Cookies.get("token");
 
-      console.log("🔑 Authentication:");
-      console.log("  - Token exists:", !!token);
       if (token) {
         console.log("  - Token preview:", token.substring(0, 20) + "...");
       } else {
         console.log("  - ⚠️ NO TOKEN FOUND!");
       }
-      console.log("🌐 API Request:");
-      console.log("  - Author Service URL:", author_service);
-      console.log("  - Full Endpoint:", `${author_service}/api/v1/blog/new`);
-      console.log("  - Method: POST");
-      console.log("  - Content-Type: multipart/form-data");
-      console.log("⏳ Sending request...");
 
       const response = await axios.post<BlogApiResponse>(
         `${author_service}/api/v1/blog/new`,
@@ -124,17 +108,11 @@ const AddBlog = () => {
           },
         }
       );
-      console.log("==============================================");
-      console.log("✅ SUCCESS!");
-      console.log("==============================================");
-      console.log("Response Status:", response.status);
-      console.log("Response Data:", response.data);
-      console.log("Response Message:", response.data.message);
 
       toast.success(response.data.message);
       const data = response.data;
       toast.success(data.message);
-      console.log("🔄 Resetting form...");
+
       setFormData({
         title: "",
         description: "",
@@ -143,7 +121,6 @@ const AddBlog = () => {
         blogcontent: "",
       });
       setContent("");
-      console.log("✅ Form reset complete");
     } catch (err) {
       // Log the raw error
       console.error("❌ API ERROR RAW:", err);
@@ -162,6 +139,62 @@ const AddBlog = () => {
     }
   };
 
+  const [aiTitle, setAiTitle] = useState(false);
+
+  const aiTitleResponse = async () => {
+    try {
+      setAiTitle(true);
+      const { data } = await axios.post(`${author_service}/api/v1/ai/title`, {
+        text: formData.title,
+      });
+      setFormData({ ...formData, title: data as string });
+    } catch (error) {
+      toast.error("Problem while fetching from ai");
+      console.log(error);
+    } finally {
+      setAiTitle(false);
+    }
+  };
+  const [aiDescription, setAiDescription] = useState(false);
+
+  const aiDescriptionResponse = async () => {
+    try {
+      setAiTitle(true);
+      const { data } = await axios.post(`${author_service}/api/v1/ai/title`, {
+        text: formData.title,
+        description: formData.description,
+      });
+      setFormData({ ...formData, description: data as string });
+    } catch (error) {
+      toast.error("Problem while fetching from ai");
+      console.log(error);
+    } finally {
+      setAiDescription(false);
+    }
+  };
+  const [aiBlogLoading, setAiBlogLoading] = useState(false);
+  type AiBlogResponse = {
+    html: string;
+  };
+
+  const aiBlogResponse = async () => {
+    try {
+      setAiBlogLoading(true);
+      const { data } = await axios.post<AiBlogResponse>(
+        `${author_service}/api/v1/ai/blog`,
+        {
+          blog: formData.blogcontent,
+        }
+      );
+      setContent(data.html as string);
+      setFormData({ ...formData, blogcontent: data.html as string });
+    } catch (error) {
+      toast.error("Problem while fetching from ai");
+      console.log(error);
+    } finally {
+      setAiBlogLoading(false);
+    }
+  };
   const config = useMemo(
     () => ({
       readonly: false, // all options from https://xdsoft.net/jodit/docs/,
@@ -169,14 +202,6 @@ const AddBlog = () => {
     }),
     []
   );
-  console.log("🎨 Component Rendered - Current State:", {
-    title: formData.title,
-    description: formData.description,
-    category: formData.category,
-    hasImage: !!formData.image,
-    contentLength: content.length,
-    loading: loading,
-  });
   return (
     <div className="max-w-4xl mx-auto p-6">
       <Card>
@@ -192,11 +217,22 @@ const AddBlog = () => {
                 value={formData.title}
                 onChange={handleInputChange}
                 placeholder="Enter Blog title"
+                className={
+                  aiTitle ? "animate-pulse placeholder:opacity-60" : ""
+                }
                 required
               />
-              <Button type="button">
-                <RefreshCw />
-              </Button>
+              {formData.title === "" ? (
+                ""
+              ) : (
+                <Button
+                  type="button"
+                  onClick={aiTitleResponse}
+                  disabled={aiTitle}
+                >
+                  <RefreshCw className={aiTitle ? "animate-spin" : ""} />
+                </Button>
+              )}
             </div>
             <Label>Description</Label>
             <div className="flex justify-center items-center gap-2">
@@ -205,11 +241,22 @@ const AddBlog = () => {
                 value={formData.description}
                 onChange={handleInputChange}
                 placeholder="Enter Blog description"
+                className={
+                  aiDescription ? "animate-pulse placeholder:opacity-60" : ""
+                }
                 required
               />
-              <Button type="button">
-                <RefreshCw />
-              </Button>
+              {formData.title === "" ? (
+                ""
+              ) : (
+                <Button
+                  onClick={aiDescriptionResponse}
+                  type="button"
+                  disabled={aiDescription}
+                >
+                  <RefreshCw className={aiDescription ? "animate-spin" : ""} />
+                </Button>
+              )}
             </div>
 
             <Label>Category</Label>
@@ -247,8 +294,16 @@ const AddBlog = () => {
                   Paste you blog or type here. you can use rich text formatting,
                   Please add image after improving your grammar
                 </p>
-                <Button type="button" size={"sm"}>
-                  <RefreshCw size={16} />
+                <Button
+                  type="button"
+                  size={"sm"}
+                  onClick={aiBlogResponse}
+                  disabled={aiBlogLoading}
+                >
+                  <RefreshCw
+                    size={16}
+                    className={aiBlogLoading ? "animate-spin" : ""}
+                  />
                   <span className="ml-2">Fix Grammar</span>
                 </Button>
               </div>
