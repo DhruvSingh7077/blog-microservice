@@ -10,45 +10,45 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { RefreshCw } from "lucide-react";
-import React, { useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 // import JoditEditor from "jodit-react";
 import Cookies from "js-cookie";
 import axios from "axios";
 
-import { author_service, useAppData } from "@/context/AppContext";
+import { author_service, blog_service, useAppData } from "@/context/AppContext";
 import toast from "react-hot-toast";
-
+import { blogCategories } from "../../new/page";
+import { useParams, useRouter } from "next/navigation";
 const JoditEditor = dynamic(() => import("jodit-react"), { ssr: false });
 
-export const blogCategories = [
-  "Technology",
-  "Health",
-  "Travel",
-  "Education",
-  "Entertainment",
-  "Study",
-  "Finance",
-];
-
-// Define the API response type
-interface BlogApiResponse {
-  message: string;
-  success: boolean;
-  blog?: {
-    id: string;
-    title: string;
-  };
-}
-
-const AddBlog = () => {
-  console.log("author_service frontend =", author_service);
+const EditBlogPage = () => {
   const editor = useRef(null);
   const [content, setContent] = useState("");
+  const router = useRouter();
 
   const { fetchBlogs } = useAppData();
+  const { id } = useParams();
+  type AiBlogBlog = {
+    title: string;
+    description: string;
+    category: string;
+    image: string;
+    blogcontent: string; // or html if that’s what backend sends
+  };
 
+  type AiBlogResponse = {
+    blog: AiBlogBlog;
+  };
+
+  interface BlogApiResponse {
+    message: string;
+    success: boolean;
+    blog?: {
+      id: string;
+      title: string;
+    };
+  }
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
@@ -75,14 +75,47 @@ const AddBlog = () => {
     );
     setFormData({ ...formData, image: file });
   };
+  const config = useMemo(
+    () => ({
+      readonly: false, // all options from https://xdsoft.net/jodit/docs/,
+      placeholder: "Start typings...",
+    }),
+    []
+  );
 
+  const [existingImage, setExistingImage] = useState<string | null>(null);
+  useEffect(() => {
+    const fetchBlog = async () => {
+      setLoading(true);
+      try {
+        const { data } = await axios.get<AiBlogResponse>(
+          `${blog_service}/api/v1/blog/${id}`
+        );
+        const blog = data.blog;
+
+        setFormData({
+          title: blog.title,
+          description: blog.description,
+          category: blog.category,
+          image: null,
+          blogcontent: blog.blogcontent,
+        });
+        setContent(blog.blogcontent);
+        setExistingImage(blog.image);
+      } catch (error) {
+        console.log(error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (id) fetchBlog();
+  }, [id]);
   const handleSubmit = async (e: any) => {
     e.preventDefault();
 
     setLoading(true);
 
     const formDataToSend = new FormData();
-
     formDataToSend.append("title", formData.title);
     formDataToSend.append("description", formData.description);
     formDataToSend.append("category", formData.category);
@@ -94,8 +127,9 @@ const AddBlog = () => {
 
     try {
       const token = Cookies.get("token");
+
       const response = await axios.post<BlogApiResponse>(
-        `${author_service}/api/v1/blog/new`,
+        `${author_service}/api/v1/blog/${id}`,
         formDataToSend,
         {
           headers: {
@@ -104,93 +138,15 @@ const AddBlog = () => {
         }
       );
 
-      toast.success(response.data.message);
       const data = response.data;
       toast.success(data.message);
-
-      setFormData({
-        title: "",
-        description: "",
-        category: "",
-        image: null,
-        blogcontent: "",
-      });
-      setContent("");
-      setTimeout(() => {
-        fetchBlogs();
-      }, 4000);
-    } catch (err) {
-      // Log the raw error
-      console.error("❌ API ERROR RAW:", err);
+      fetchBlogs();
+    } catch (error) {
       toast.error("Error while adding blog");
     } finally {
       setLoading(false);
     }
   };
-
-  const [aiTitle, setAiTitle] = useState(false);
-
-  const aiTitleResponse = async () => {
-    try {
-      setAiTitle(true);
-      const { data } = await axios.post(`${author_service}/api/v1/ai/title`, {
-        text: formData.title,
-      });
-      setFormData({ ...formData, title: data as string });
-    } catch (error) {
-      toast.error("Problem while fetching from ai");
-      console.log(error);
-    } finally {
-      setAiTitle(false);
-    }
-  };
-  const [aiDescription, setAiDescription] = useState(false);
-
-  const aiDescriptionResponse = async () => {
-    try {
-      setAiTitle(true);
-      const { data } = await axios.post(`${author_service}/api/v1/ai/title`, {
-        text: formData.title,
-        description: formData.description,
-      });
-      setFormData({ ...formData, description: data as string });
-    } catch (error) {
-      toast.error("Problem while fetching from ai");
-      console.log(error);
-    } finally {
-      setAiDescription(false);
-    }
-  };
-  const [aiBlogLoading, setAiBlogLoading] = useState(false);
-  type AiBlogResponse = {
-    html: string;
-  };
-
-  const aiBlogResponse = async () => {
-    try {
-      setAiBlogLoading(true);
-      const { data } = await axios.post<AiBlogResponse>(
-        `${author_service}/api/v1/ai/blog`,
-        {
-          blog: formData.blogcontent,
-        }
-      );
-      setContent(data.html as string);
-      setFormData({ ...formData, blogcontent: data.html as string });
-    } catch (error) {
-      toast.error("Problem while fetching from ai");
-      console.log(error);
-    } finally {
-      setAiBlogLoading(false);
-    }
-  };
-  const config = useMemo(
-    () => ({
-      readonly: false, // all options from https://xdsoft.net/jodit/docs/,
-      placeholder: "Start typings...",
-    }),
-    []
-  );
   return (
     <div className="max-w-4xl mx-auto p-6">
       <Card>
@@ -206,22 +162,8 @@ const AddBlog = () => {
                 value={formData.title}
                 onChange={handleInputChange}
                 placeholder="Enter Blog title"
-                className={
-                  aiTitle ? "animate-pulse placeholder:opacity-60" : ""
-                }
                 required
               />
-              {formData.title === "" ? (
-                ""
-              ) : (
-                <Button
-                  type="button"
-                  onClick={aiTitleResponse}
-                  disabled={aiTitle}
-                >
-                  <RefreshCw className={aiTitle ? "animate-spin" : ""} />
-                </Button>
-              )}
             </div>
             <Label>Description</Label>
             <div className="flex justify-center items-center gap-2">
@@ -230,22 +172,8 @@ const AddBlog = () => {
                 value={formData.description}
                 onChange={handleInputChange}
                 placeholder="Enter Blog description"
-                className={
-                  aiDescription ? "animate-pulse placeholder:opacity-60" : ""
-                }
                 required
               />
-              {formData.title === "" ? (
-                ""
-              ) : (
-                <Button
-                  onClick={aiDescriptionResponse}
-                  type="button"
-                  disabled={aiDescription}
-                >
-                  <RefreshCw className={aiDescription ? "animate-spin" : ""} />
-                </Button>
-              )}
             </div>
 
             <Label>Category</Label>
@@ -273,6 +201,13 @@ const AddBlog = () => {
 
             <div>
               <Label>Image Upload</Label>
+              {existingImage && !formData.image && (
+                <img
+                  src={existingImage}
+                  className="w-4- h-40 object-cover rounded mb-2"
+                  alt=""
+                />
+              )}
               <Input type="file" accept="image/*" onChange={handleFileChange} />
             </div>
 
@@ -283,18 +218,6 @@ const AddBlog = () => {
                   Paste you blog or type here. you can use rich text formatting,
                   Please add image after improving your grammar
                 </p>
-                <Button
-                  type="button"
-                  size={"sm"}
-                  onClick={aiBlogResponse}
-                  disabled={aiBlogLoading}
-                >
-                  <RefreshCw
-                    size={16}
-                    className={aiBlogLoading ? "animate-spin" : ""}
-                  />
-                  <span className="ml-2">Fix Grammar</span>
-                </Button>
               </div>
               <JoditEditor
                 ref={editor}
@@ -317,4 +240,4 @@ const AddBlog = () => {
   );
 };
 
-export default AddBlog;
+export default EditBlogPage;

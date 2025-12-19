@@ -51,6 +51,7 @@ interface AppContextType {
   setSearchQuery: React.Dispatch<React.SetStateAction<string>>;
   setCategory: React.Dispatch<React.SetStateAction<string>>;
   searchQuery: string;
+  fetchBlogs: () => Promise<void>;
 }
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
@@ -131,6 +132,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
         setCategory,
         setSearchQuery,
         searchQuery,
+        fetchBlogs,
       }}
     >
       <GoogleOAuthProvider clientId="806110013502-427pun0c8fteinlot8v2tjgi95php1qi.apps.googleusercontent.com">

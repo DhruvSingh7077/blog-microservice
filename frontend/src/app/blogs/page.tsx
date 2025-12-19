@@ -1,4 +1,5 @@
 "use client";
+import BlogCard from "@/components/BlogCard";
 import Loading from "@/components/loading";
 import { Button } from "@/components/ui/button";
 import { useSidebar } from "@/components/ui/sidebar";
@@ -31,11 +32,20 @@ const Blogs = () => {
           {blogLoading ? (
             <Loading />
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 mg:grid-cols-3 lg:grid-cols-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
               {blogs?.length === 0 && <p>No Blogs yet</p>}
               {blogs &&
                 blogs.map((e, i) => {
-                  return <p key={i}>{e.title}</p>;
+                  return (
+                    <BlogCard
+                      key={i}
+                      image={e.image}
+                      title={e.title}
+                      desc={e.description}
+                      id={e.id}
+                      time={e.created_at}
+                    />
+                  );
                 })}
             </div>
           )}

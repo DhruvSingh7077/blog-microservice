@@ -13,7 +13,7 @@ const Navbar = () => {
   return (
     <nav className="bg-white shadow-md p-4 z-50">
       <div className="container mx-auto flex justify-between items-center">
-        <Link href={"/"} className="text-xl font-bold text-gray-900">
+        <Link href={"/blogs"} className="text-xl font-bold text-gray-900">
           The reading Retreat
         </Link>
         <div className="md:hidden">
@@ -23,7 +23,7 @@ const Navbar = () => {
         </div>
         <ul className="hidden md:flex justify-center items-center space-x-6 text-gray-700">
           <li>
-            <Link href={"/"} className="hover:text-blue-500">
+            <Link href={"/blogs"} className="hover:text-blue-500">
               Home
             </Link>
           </li>
