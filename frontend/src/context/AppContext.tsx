@@ -10,6 +10,7 @@ import {
   useEffect,
   useState,
 } from "react";
+import { useDebounce } from "@/hooks/useDebounce";
 export const user_service = "http://localhost:5000";
 export const author_service = "http://localhost:5001";
 export const blog_service = "http://localhost:5002";
@@ -54,6 +55,7 @@ interface AppContextType {
   logoutUser: () => Promise<void>;
   blogs: Blog[] | null;
   blogLoading: boolean;
+  category: string;
   setSearchQuery: React.Dispatch<React.SetStateAction<string>>;
   setCategory: React.Dispatch<React.SetStateAction<string>>;
   searchQuery: string;
@@ -143,9 +145,11 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
     getSavedBlogs();
   }, []);
 
+  // Debouncer
+  const debouncedSearchQuery = useDebounce(searchQuery, 400);
   useEffect(() => {
     fetchBlogs();
-  }, [searchQuery, category]);
+  }, [debouncedSearchQuery, category]);
   return (
     <AppContext.Provider
       value={{
@@ -161,6 +165,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
         setCategory,
         setSearchQuery,
         searchQuery,
+        category,
         fetchBlogs,
         savedBlogs,
         getSavedBlogs,

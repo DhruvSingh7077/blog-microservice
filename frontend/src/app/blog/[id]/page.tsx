@@ -202,7 +202,7 @@ const BlogPage = () => {
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-6">
+    <div className="mx-auto max-w-4xl px-4 py-8 space-y-6">
       <Card>
         <CardHeader>
           <h1 className="text-3xl font-bold text-gray-900">{blog.title}</h1>
