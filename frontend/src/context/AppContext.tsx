@@ -58,6 +58,8 @@ interface AppContextType {
   setCategory: React.Dispatch<React.SetStateAction<string>>;
   searchQuery: string;
   fetchBlogs: () => Promise<void>;
+  savedBlogs: SavedBlogType[] | null;
+  getSavedBlogs: () => Promise<void>;
 }
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
@@ -114,7 +116,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
   async function getSavedBlogs() {
     const token = Cookies.get("token");
     try {
-      const { data } = await axios.get(
+      const { data } = await axios.get<SavedBlogType[]>(
         `${blog_service}/api/v1/blog/saved/all`,
         {
           headers: {
@@ -122,6 +124,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
           },
         }
       );
+      setSavedBlogs(data);
     } catch (error) {
       console.log(error);
     }
@@ -159,6 +162,8 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
         setSearchQuery,
         searchQuery,
         fetchBlogs,
+        savedBlogs,
+        getSavedBlogs,
       }}
     >
       <GoogleOAuthProvider clientId="806110013502-427pun0c8fteinlot8v2tjgi95php1qi.apps.googleusercontent.com">

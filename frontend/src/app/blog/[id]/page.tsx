@@ -14,7 +14,14 @@ import Loading from "@/components/loading";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Bookmark, Edit, Trash2, Trash2Icon, User2 } from "lucide-react";
+import {
+  Bookmark,
+  BookmarkCheck,
+  Edit,
+  Trash2,
+  Trash2Icon,
+  User2,
+} from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import Cookies from "js-cookie";
@@ -37,7 +44,7 @@ type AddCommentResponse = {
 };
 
 const BlogPage = () => {
-  const { isAuth, user, fetchBlogs } = useAppData();
+  const { isAuth, user, fetchBlogs, savedBlogs, getSavedBlogs } = useAppData();
   const router = useRouter();
   const { id } = useParams();
   const [blog, setBlog] = useState<Blog | null>(null);
@@ -155,6 +162,13 @@ const BlogPage = () => {
   }
 
   const [saved, setSaved] = useState(false);
+  useEffect(() => {
+    if (savedBlogs && savedBlogs.some((b) => b.blogid === id)) {
+      setSaved(true);
+    } else {
+      setSaved(false);
+    }
+  }, [savedBlogs, id]);
 
   async function saveBlog() {
     const token = Cookies.get("token");
@@ -170,6 +184,8 @@ const BlogPage = () => {
         }
       );
       toast.success(data.message);
+      setSaved(!saved);
+      getSavedBlogs();
     } catch (error) {
       toast.error("Failed to save blog");
     } finally {
@@ -210,6 +226,7 @@ const BlogPage = () => {
                 disabled={loading}
                 onClick={saveBlog}
               >
+                {saved ? <BookmarkCheck /> : <Bookmark />}
                 <Bookmark />
               </Button>
             )}
