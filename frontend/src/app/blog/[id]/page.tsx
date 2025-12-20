@@ -1,6 +1,12 @@
 "use client";
 import React, { useEffect } from "react";
-import { useAppData, Blog, User, blog_service } from "@/context/AppContext";
+import {
+  useAppData,
+  Blog,
+  User,
+  blog_service,
+  author_service,
+} from "@/context/AppContext";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import axios from "axios";
@@ -8,21 +14,82 @@ import Loading from "@/components/loading";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Bookmark, Edit, Trash2Icon } from "lucide-react";
+import { Bookmark, Edit, Trash2, Trash2Icon, User2 } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import Cookies from "js-cookie";
+import toast from "react-hot-toast";
+
+type Comment = {
+  id: string;
+  comment: string;
+  userid: string;
+  username: string;
+  blogid: string;
+  create_at: string;
+};
+type SingleBlogResponse = {
+  blog: Blog;
+  author: User;
+};
+type AddCommentResponse = {
+  message: string;
+};
+
 const BlogPage = () => {
-  const { isAuth, user } = useAppData();
+  const { isAuth, user, fetchBlogs } = useAppData();
   const router = useRouter();
   const { id } = useParams();
   const [blog, setBlog] = useState<Blog | null>(null);
   const [author, setAuthor] = useState<User | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(false);
 
-  type SingleBlogResponse = {
-    blog: Blog;
-    author: User;
-  };
+  const [comments, setComments] = useState<Comment[]>([]);
+
+  async function fetchComment() {
+    try {
+      setLoading(true);
+      const { data } = await axios.get<Comment[]>(
+        `${blog_service}/api/v1/comment/${id}`,
+        { params: { comment } }
+      );
+      setComments(data);
+    } catch (error) {
+      console.log(error);
+      toast.error("Failed to load comments");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    fetchComment();
+  }, [id]);
+
+  const [comment, setComment] = useState<string>("");
+  async function addComment() {
+    try {
+      setLoading(true);
+      const token = Cookies.get("token");
+      const { data } = await axios.post<AddCommentResponse>(
+        `${blog_service}/api/v1/comment/${id}`,
+        { comment },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      toast.success(data.message);
+      setComment("");
+      await fetchComment();
+    } catch (error) {
+      toast.error("Failed to add comment");
+    } finally {
+      setLoading(false);
+    }
+  }
+
   async function fetchSingleBlog() {
     setLoading(true);
     try {
@@ -38,6 +105,78 @@ const BlogPage = () => {
     }
   }
 
+  const deleteComment = async (commentid: string) => {
+    if (confirm("Are you sure you want to delete this comment?")) {
+      try {
+        setLoading(true);
+        const token = Cookies.get("token");
+        const { data } = await axios.delete<AddCommentResponse>(
+          `${blog_service}/api/v1/comment/${commentid}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        toast.success(data.message);
+        await fetchComment();
+      } catch (error) {
+        toast.error("Failed to delete comment");
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
+  async function deleteBlog() {
+    if (confirm("Are you sure you want to delete this comment?")) {
+      try {
+        setLoading(true);
+        const token = Cookies.get("token");
+        const { data } = await axios.delete<AddCommentResponse>(
+          `${author_service}/api/v1/blog/${id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        toast.success(data.message);
+        router.push("/blogs");
+        setTimeout(() => {
+          fetchBlogs();
+        }, 4000);
+      } catch (error) {
+        toast.error("Failed to delete Blog");
+      } finally {
+        setLoading(false);
+      }
+    }
+  }
+
+  const [saved, setSaved] = useState(false);
+
+  async function saveBlog() {
+    const token = Cookies.get("token");
+    try {
+      setLoading(true);
+      const { data } = await axios.post<AddCommentResponse>(
+        `${blog_service}/api/v1/save/${id}`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      toast.success(data.message);
+    } catch (error) {
+      toast.error("Failed to save blog");
+    } finally {
+      setLoading(false);
+    }
+  }
+
   useEffect(() => {
     fetchSingleBlog();
   }, [id]);
@@ -45,9 +184,7 @@ const BlogPage = () => {
   if (!blog) {
     return <Loading />;
   }
-  // Put logs here:
-  console.log("user", user);
-  console.log("blog.author", blog.author);
+
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-6">
       <Card>
@@ -66,7 +203,13 @@ const BlogPage = () => {
               {author?.name}
             </Link>
             {isAuth && (
-              <Button variant={"ghost"} className="mx-3" size={"lg"}>
+              <Button
+                variant={"ghost"}
+                className="mx-3"
+                size={"lg"}
+                disabled={loading}
+                onClick={saveBlog}
+              >
                 <Bookmark />
               </Button>
             )}
@@ -78,7 +221,13 @@ const BlogPage = () => {
                 >
                   <Edit />
                 </Button>
-                <Button variant={"destructive"} className="mx-2" size={"sm"}>
+                <Button
+                  variant={"destructive"}
+                  className="mx-2"
+                  size={"sm"}
+                  onClick={deleteBlog}
+                  disabled={loading}
+                >
                   <Trash2Icon />
                 </Button>
               </>
@@ -109,10 +258,56 @@ const BlogPage = () => {
               id="comment"
               placeholder="Type your comment here"
               className="my-2"
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
             />
+            <Button onClick={addComment} disabled={loading}>
+              {loading ? "Adding comment..." : "Post Comment"}
+            </Button>
           </CardContent>
         </Card>
       )}
+
+      <Card>
+        <CardHeader>
+          <h3 className="text-xl font-medium"> All Comments</h3>
+        </CardHeader>
+        <CardContent>
+          {comments && comments.length > 0 ? (
+            comments.map((e, i) => {
+              return (
+                <div key={i} className="border-b py-2 flex items-center gap-3">
+                  <div>
+                    <p className="font-semibold flex items-center gap-1">
+                      <span className="user border border-gray-400 rounded-full p-1">
+                        <User2 />
+                      </span>
+                      {e.username}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {new Date(e.create_at).toLocaleString()}
+                    </p>
+                  </div>
+                  <div>
+                    <p>{e.comment}</p>
+                  </div>
+                  {e.userid === user?._id && (
+                    <Button
+                      onClick={() => deleteComment(e.id)}
+                      variant={"destructive"}
+                      disabled={loading}
+                    >
+                      <Trash2 />
+                    </Button>
+                  )}
+                </div>
+              );
+            })
+          ) : (
+            <p>No Comments Yet</p>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 };

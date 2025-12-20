@@ -37,6 +37,12 @@ export interface Blog {
   author: string;
   created_at: string;
 }
+export interface SavedBlogType {
+  id: string;
+  userid: string;
+  blogid: string;
+  create_at: string;
+}
 
 interface AppContextType {
   user: User | null;
@@ -102,6 +108,25 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
       setBlogLoading(false);
     }
   }
+
+  const [savedBlogs, setSavedBlogs] = useState<SavedBlogType[] | null>(null);
+
+  async function getSavedBlogs() {
+    const token = Cookies.get("token");
+    try {
+      const { data } = await axios.get(
+        `${blog_service}/api/v1/blog/saved/all`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
   async function logoutUser() {
     Cookies.remove("token");
     setUser(null);
@@ -112,6 +137,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
 
   useEffect(() => {
     fetchUser();
+    getSavedBlogs();
   }, []);
 
   useEffect(() => {
