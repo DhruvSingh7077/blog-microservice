@@ -127,3 +127,29 @@ export const updateProfilePic = TryCatch(
     });
   }
 );
+export const demoLogin = TryCatch(async (req, res) => {
+  const demoEmail = "demo@readingretreat.com";
+
+  // find demo user
+  let user = await User.findOne({ email: demoEmail });
+
+  // if not exist, create one
+  if (!user) {
+    user = await User.create({
+      name: "Demo User",
+      email: demoEmail,
+      image: "https://i.pravatar.cc/150?u=reading-retreat-demo",
+    });
+  }
+
+  // generate JWT exactly like loginUser / updateUser
+  const token = jwt.sign({ user }, process.env.JWT_SEC as string, {
+    expiresIn: "5d",
+  });
+
+  res.status(200).json({
+    message: "Logged in as demo user",
+    token,
+    user,
+  });
+});

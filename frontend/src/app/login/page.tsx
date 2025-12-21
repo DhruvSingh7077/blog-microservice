@@ -1,5 +1,6 @@
 "use client";
-import React from "react";
+
+import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import Loading from "@/components/loading";
 import {
@@ -16,7 +17,7 @@ import axios from "axios";
 
 import Cookies from "js-cookie";
 import toast from "react-hot-toast";
-import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 interface LoginResponse {
   token: string;
@@ -26,8 +27,14 @@ interface LoginResponse {
 const LoginPage = () => {
   const { isAuth, user, setIsAuth, loading, setLoading, setUser } =
     useAppData();
+  const router = useRouter();
 
-  if (isAuth) return redirect("/blogs");
+  useEffect(() => {
+    if (isAuth) {
+      router.push("/blogs");
+    }
+  }, [isAuth, router]);
+
   const responseGoogle = async (authResult: any) => {
     setLoading(true);
     try {
@@ -46,6 +53,7 @@ const LoginPage = () => {
       setIsAuth(true);
       setLoading(false);
       setUser(user);
+      router.push("/blogs");
     } catch (error) {
       console.error("Login failed", error);
       toast.error("Problem while login you");
@@ -58,6 +66,32 @@ const LoginPage = () => {
     onError: responseGoogle,
     flow: "auth-code",
   });
+  // ✅ new demo-login
+  const handleDemoLogin = async () => {
+    try {
+      setLoading(true);
+      const { data } = await axios.post<LoginResponse & { user: any }>(
+        `${user_service}/api/v1/auth/demo`
+      );
+
+      Cookies.set("token", data.token, {
+        expires: 7,
+        secure: true,
+        path: "/",
+      });
+
+      toast.success(data.message || "Logged in as demo user");
+      setIsAuth(true);
+      setUser(data.user);
+      router.push("/blogs");
+    } catch (error) {
+      console.error("Demo login failed", error);
+      toast.error("Failed to login as demo user");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <>
       {loading ? (
@@ -69,8 +103,16 @@ const LoginPage = () => {
               <CardTitle>Login to the Reading Retreat</CardTitle>
               <CardDescription>Your go to blog app</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="flex flex-col gap-3">
               <Button onClick={googleLogin}>Login with google</Button>
+              {/* ✅ Demo user button */}
+              <Button
+                variant="outline"
+                onClick={handleDemoLogin}
+                className="w-full"
+              >
+                Continue as demo user
+              </Button>
             </CardContent>
             <CardFooter className="flex-col gap-2"></CardFooter>
           </Card>
