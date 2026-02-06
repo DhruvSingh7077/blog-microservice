@@ -394,6 +394,189 @@ export const addComment = TryCatch(async (req: AuthenticatedRequest, res: Respon
   }
 });
 
+// ===== GET ALL COMMENTS FOR A BLOG =====
+export const getAllComments = TryCatch(async (req: Request, res: Response) => {
+  const { id: blogid } = req.params;
+
+  console.log('📥 GET /blogs/:id/comments - Blog ID:', blogid);
+
+  setNoCacheHeaders(res);
+
+  try {
+    const comments = await sql`
+      SELECT * FROM comments 
+      WHERE blogid = ${blogid} 
+      ORDER BY created_at DESC
+    `;
+
+    console.log(`✅ Fetched ${comments.length} comments`);
+
+    res.json(comments);
+  } catch (error) {
+    console.error('❌ Error fetching comments:', error);
+    res.status(500).json({ 
+      message: "Error fetching comments", 
+      error: process.env.NODE_ENV === 'development' ? String(error) : undefined 
+    });
+  }
+});
+
+// ===== DELETE COMMENT =====
+export const deleteComment = TryCatch(async (req: AuthenticatedRequest, res: Response) => {
+  const { id: commentid } = req.params;
+
+  console.log('📥 DELETE /comments/:id - Comment ID:', commentid);
+
+  setNoCacheHeaders(res);
+
+  if (!req.user?._id) {
+    return res.status(401).json({ message: "User not authenticated" });
+  }
+
+  try {
+    // Check if comment exists and belongs to user
+    const comments = await sql`
+      SELECT * FROM comments 
+      WHERE id = ${commentid} AND userid = ${req.user._id}
+    `;
+
+    if (!comments.length) {
+      return res.status(404).json({ 
+        message: "Comment not found or you don't have permission to delete it" 
+      });
+    }
+
+    const comment = comments[0] as any; // Type assertion to fix TypeScript error
+
+    // Delete the comment
+    await sql`DELETE FROM comments WHERE id = ${commentid}`;
+
+    console.log('✅ Comment deleted successfully');
+
+    // Invalidate blog cache
+    if (comment?.blogid) {
+      const blogCacheKey = `blog:${comment.blogid}`;
+      await safeRedisDel(blogCacheKey);
+    }
+
+    res.json({ message: "Comment deleted successfully" });
+  } catch (error) {
+    console.error('❌ Error deleting comment:', error);
+    res.status(500).json({ 
+      message: "Error deleting comment", 
+      error: process.env.NODE_ENV === 'development' ? String(error) : undefined 
+    });
+  }
+});
+
+// ===== SAVE BLOG (Bookmark) =====
+export const savedBlog = TryCatch(async (req: AuthenticatedRequest, res: Response) => {
+  const { id: blogid } = req.params;
+
+  console.log('📥 POST /blogs/:id/save - Blog ID:', blogid);
+
+  setNoCacheHeaders(res);
+
+  if (!req.user?._id) {
+    return res.status(401).json({ message: "User not authenticated" });
+  }
+
+  try {
+    // Check if already saved
+    const existing = await sql`
+      SELECT * FROM saved_blogs 
+      WHERE blogid = ${blogid} AND userid = ${req.user._id}
+    `;
+
+    if (existing.length > 0) {
+      return res.status(400).json({ message: "Blog already saved" });
+    }
+
+    // Save the blog
+    await sql`
+      INSERT INTO saved_blogs (blogid, userid) 
+      VALUES (${blogid}, ${req.user._id})
+    `;
+
+    console.log('✅ Blog saved successfully');
+
+    res.json({ message: "Blog saved successfully" });
+  } catch (error) {
+    console.error('❌ Error saving blog:', error);
+    res.status(500).json({ 
+      message: "Error saving blog", 
+      error: process.env.NODE_ENV === 'development' ? String(error) : undefined 
+    });
+  }
+});
+
+// ===== GET SAVED BLOGS =====
+export const getSavedBlog = TryCatch(async (req: AuthenticatedRequest, res: Response) => {
+  console.log('📥 GET /saved-blogs');
+
+  setNoCacheHeaders(res);
+
+  if (!req.user?._id) {
+    return res.status(401).json({ message: "User not authenticated" });
+  }
+
+  try {
+    // Get saved blog IDs for this user
+    const savedBlogs = await sql`
+      SELECT sb.*, b.* 
+      FROM saved_blogs sb
+      JOIN blogs b ON sb.blogid = b.id
+      WHERE sb.userid = ${req.user._id}
+      ORDER BY sb.created_at DESC
+    `;
+
+    console.log(`✅ Fetched ${savedBlogs.length} saved blogs`);
+
+    res.json(savedBlogs);
+  } catch (error) {
+    console.error('❌ Error fetching saved blogs:', error);
+    res.status(500).json({ 
+      message: "Error fetching saved blogs", 
+      error: process.env.NODE_ENV === 'development' ? String(error) : undefined 
+    });
+  }
+});
+
+// ===== UNSAVE BLOG (Remove Bookmark) =====
+export const unsaveBlog = TryCatch(async (req: AuthenticatedRequest, res: Response) => {
+  const { id: blogid } = req.params;
+
+  console.log('📥 DELETE /blogs/:id/save - Blog ID:', blogid);
+
+  setNoCacheHeaders(res);
+
+  if (!req.user?._id) {
+    return res.status(401).json({ message: "User not authenticated" });
+  }
+
+  try {
+    const result = await sql`
+      DELETE FROM saved_blogs 
+      WHERE blogid = ${blogid} AND userid = ${req.user._id}
+      RETURNING *
+    `;
+
+    if (!result.length) {
+      return res.status(404).json({ message: "Saved blog not found" });
+    }
+
+    console.log('✅ Blog unsaved successfully');
+
+    res.json({ message: "Blog removed from saved" });
+  } catch (error) {
+    console.error('❌ Error unsaving blog:', error);
+    res.status(500).json({ 
+      message: "Error removing saved blog", 
+      error: process.env.NODE_ENV === 'development' ? String(error) : undefined 
+    });
+  }
+});
+
 // ===== CLEAR CACHE (Admin/Debug Endpoint) =====
 export const clearBlogCache = TryCatch(async (req: Request, res: Response) => {
   try {
