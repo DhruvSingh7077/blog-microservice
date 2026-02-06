@@ -17,20 +17,14 @@ import dynamic from "next/dynamic";
 import Cookies from "js-cookie";
 import axios from "axios";
 
-import { author_service, useAppData } from "@/context/AppContext";
+import {
+  author_service,
+  useAppData,
+  blogCategories,
+} from "@/context/AppContext";
 import toast from "react-hot-toast";
 
 const JoditEditor = dynamic(() => import("jodit-react"), { ssr: false });
-
-export const blogCategories = [
-  "Technology",
-  "Health",
-  "Travel",
-  "Education",
-  "Entertainment",
-  "Study",
-  "Finance",
-];
 
 // Define the API response type
 interface BlogApiResponse {

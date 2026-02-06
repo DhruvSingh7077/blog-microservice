@@ -3,7 +3,15 @@ import amqp from "amqplib";
 export let channel: amqp.Channel;
 
 export const connectRabbitMQ = async () => {
-  const url = "amqp://guest:guest@localhost:5672";
+  // const url = "amqp://guest:guest@localhost:5672";
+  // const url = "amqp://admin:admin123@localhost:5672";
+  // const url = "amqp://admin:admin123@13.60.87.246:5672";
+  const url = process.env.RABBITMQ_URL as string;
+
+  if (!url) {
+    throw new Error("RABBITMQ_URL is not set");
+  }
+
   console.log("RABBIT URL:", url);
 
   const connection = await amqp.connect(url);

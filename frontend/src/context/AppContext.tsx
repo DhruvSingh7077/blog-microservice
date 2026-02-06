@@ -11,10 +11,19 @@ import {
   useState,
 } from "react";
 import { useDebounce } from "@/hooks/useDebounce";
-export const user_service = "http://localhost:5000";
-export const author_service = "http://localhost:5001";
-export const blog_service = "http://localhost:5002";
+export const user_service = "https://user-service2-8us6.onrender.com";
+export const author_service = "https://author-service-hejr.onrender.com";
+export const blog_service = "https://blog-service-xq4m.onrender.com";
 
+export const blogCategories = [
+  "Technology",
+  "Health",
+  "Travel",
+  "Education",
+  "Entertainment",
+  "Study",
+  "Finance",
+];
 export interface User {
   _id: string;
   name: string;

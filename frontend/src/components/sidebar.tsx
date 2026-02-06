@@ -11,8 +11,8 @@ import {
 } from "./ui/sidebar";
 import { Input } from "./ui/input";
 import { Layers3, Sparkles } from "lucide-react";
-import { blogCategories } from "@/app/blog/new/page";
-import { useAppData } from "@/context/AppContext";
+
+import { useAppData, blogCategories } from "@/context/AppContext";
 import { cn } from "@/lib/utils";
 
 const SideBar = () => {

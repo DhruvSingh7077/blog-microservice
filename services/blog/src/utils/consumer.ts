@@ -8,7 +8,14 @@ interface CacheInvalidationMessage {
 
 export const startCacheConsumer = async () => {
   try {
-    const url = "amqp://guest:guest@localhost:5672";
+    // const url = "amqp://guest:guest@localhost:5672";
+    // const url = "amqp://admin:admin123@localhost:5672";
+    // const url = "amqp://admin:admin123@13.60.87.246:5672";
+    const url = process.env.RABBITMQ_URL as string;
+
+    if (!url) {
+      throw new Error("RABBITMQ_URL is not set");
+    }
     const connection = await amqplib.connect(url);
 
     const channel = await connection.createChannel();
