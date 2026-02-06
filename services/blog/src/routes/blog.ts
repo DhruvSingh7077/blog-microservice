@@ -32,12 +32,13 @@ import {
 import { isAuth } from "../middleware/isAuth.js";
 const router = express.Router();
 
-router.get("/", getAllBlogs);                    // GET /api/v1/blogs
+// IMPORTANT: Specific routes FIRST, then parameterized routes
+router.get("/saved", isAuth, getSavedBlog);       // GET /api/v1/blogs/saved (MUST be before /:id)
+router.get("/", getAllBlogs);                     // GET /api/v1/blogs
 router.get("/:id", getSingleBlog);                // GET /api/v1/blogs/:id
-router.post("/:id/comment", isAuth, addComment);  // POST /api/v1/blogs/:id/comment
 router.get("/:id/comments", getAllComments);      // GET /api/v1/blogs/:id/comments
-router.delete("/comment/:commentid", isAuth, deleteComment);
-router.post("/:blogid/save", isAuth, savedBlog);
-router.get("/saved", isAuth, getSavedBlog);       // GET /api/v1/blogs/saved
+router.post("/:id/comment", isAuth, addComment);  // POST /api/v1/blogs/:id/comment
+router.post("/:id/save", isAuth, savedBlog);      // POST /api/v1/blogs/:id/save
+router.delete("/comment/:commentid", isAuth, deleteComment); // DELETE /api/v1/blogs/comment/:commentid
 
 export default router;
