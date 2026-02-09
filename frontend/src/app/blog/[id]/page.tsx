@@ -56,10 +56,13 @@ const BlogPage = () => {
   async function fetchComment() {
     try {
       setLoading(true);
+      // const { data } = await axios.get<Comment[]>(
+      //   `${blog_service}/api/v1/comment/${id}`,
+      //   { params: { comment } }
+      // );
       const { data } = await axios.get<Comment[]>(
-        `${blog_service}/api/v1/comment/${id}`,
-        { params: { comment } }
-      );
+  `/api/blogs/${id}/comments`
+);
       setComments(data);
     } catch (error) {
       console.log(error);
@@ -78,15 +81,24 @@ const BlogPage = () => {
     try {
       setLoading(true);
       const token = Cookies.get("token");
+      // const { data } = await axios.post<AddCommentResponse>(
+      //   `${blog_service}/api/v1/comment/${id}`,
+      //   { comment },
+      //   {
+      //     headers: {
+      //       Authorization: `Bearer ${token}`,
+      //     },
+      //   }
+      // );
       const { data } = await axios.post<AddCommentResponse>(
-        `${blog_service}/api/v1/comment/${id}`,
-        { comment },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+  `/api/blogs/${id}/comment`,
+  { comment },
+  {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  }
+);
       toast.success(data.message);
       setComment("");
       await fetchComment();
@@ -100,9 +112,12 @@ const BlogPage = () => {
   async function fetchSingleBlog() {
     setLoading(true);
     try {
+      // const { data } = await axios.get<SingleBlogResponse>(
+      //   `${blog_service}/api/v1/blog/${id}`
+      // );
       const { data } = await axios.get<SingleBlogResponse>(
-        `${blog_service}/api/v1/blog/${id}`
-      );
+  `/api/blogs/${id}`
+);
       setBlog(data.blog);
       setAuthor(data.author);
     } catch (error) {
@@ -117,14 +132,22 @@ const BlogPage = () => {
       try {
         setLoading(true);
         const token = Cookies.get("token");
-        const { data } = await axios.delete<AddCommentResponse>(
-          `${blog_service}/api/v1/comment/${commentid}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        // const { data } = await axios.delete<AddCommentResponse>(
+        //   `${blog_service}/api/v1/comment/${commentid}`,
+        //   {
+        //     headers: {
+        //       Authorization: `Bearer ${token}`,
+        //     },
+        //   }
+        // );
+     const { data } = await axios.delete<AddCommentResponse>(
+  `/api/blogs/comment/${commentid}`,
+  {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  }
+);
         toast.success(data.message);
         await fetchComment();
       } catch (error) {
@@ -174,15 +197,24 @@ const BlogPage = () => {
     const token = Cookies.get("token");
     try {
       setLoading(true);
+      // const { data } = await axios.post<AddCommentResponse>(
+      //   `${blog_service}/api/v1/save/${id}`,
+      //   {},
+      //   {
+      //     headers: {
+      //       Authorization: `Bearer ${token}`,
+      //     },
+      //   }
+      // );
       const { data } = await axios.post<AddCommentResponse>(
-        `${blog_service}/api/v1/save/${id}`,
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+  `/api/blogs/${id}/save`,
+  {},
+  {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  }
+);
       toast.success(data.message);
       setSaved(!saved);
       getSavedBlogs();

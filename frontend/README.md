@@ -1,3 +1,9 @@
+<img width="791" height="627" alt="image" src="https://github.com/user-attachments/assets/9272365f-85b8-47b0-a9fb-e22002950fcf" />
+
+Deployed Link https://blogfrontend-ecru.vercel.app/blogs
+
+
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
