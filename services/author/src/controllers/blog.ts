@@ -130,42 +130,7 @@ export const deleteBlog = TryCatch(async (req: AuthenticatedRequest, res) => {
   });
 });
 
-// export const aiTitleResponse = TryCatch(async (req, res) => {
-//   const { text } = req.body;
 
-//   const prompt = `Correct the grammar of the following blog title and return only the corrected title
-//   without any additional text, formatting, or symbols: "${text}"`;
-
-//   let result;
-
-//   const ai = new GoogleGenAI({
-//     apiKey: process.env.Gemini_Api_Key as string,
-//   });
-
-//   async function main() {
-//     const response = await ai.models.generateContent({
-//       model: "gemini-2.0-flash",
-//       contents: prompt,
-//     });
-
-//     let rawtext = response.text;
-
-//     if (!rawtext) {
-//       res.status(400).json({
-//         message: "AI generation failed",
-//       });
-//       return;
-//     }
-//     result = rawtext
-//       .replace(/\*\*/g, "")
-//       .replace(/[\r\n]+/g, "")
-//       .replace(/[*_`~]/g, "")
-//       .trim();
-//   }
-//   await main();
-
-//   res.json(result);
-// });
 export const aiTitleResponse = TryCatch(async (req, res) => {
   const { text } = req.body;
   if (!text) {

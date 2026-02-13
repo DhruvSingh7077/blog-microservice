@@ -16,6 +16,11 @@ router.get("/me", isAuth, myProfile);
 router.get("/user/:id", getUserProfile);
 router.post("/user/update", isAuth, updateUser);
 router.post("/user/update/pic", isAuth, uploadFile, updateProfilePic);
-router.post("/auth/demo", demoLogin);
+router.post("/auth/demo", (req, res, next) => {
+  console.log("🔥 Demo route hit!");
+  next();
+}, demoLogin);
+
+console.log("✅ Routes registered, including /auth/demo");
 
 export default router;
