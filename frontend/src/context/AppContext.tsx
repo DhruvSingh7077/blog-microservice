@@ -13,8 +13,7 @@ import {
 import { useDebounce } from "@/hooks/useDebounce";
 export const user_service = "https://user-service2-8us6.onrender.com";
 export const author_service = "https://author-service-hejr.onrender.com";
-// export const blog_service = "https://blog-service-xq4m.onrender.com";
-export const blog_service = "";
+ export const blog_service = "https://blog-service-xq4m.onrender.com";
 
 export const blogCategories = [
   "Technology",
@@ -111,12 +110,10 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
   async function fetchBlogs() {
     setBlogLoading(true);
     try {
-      // const { data } = await axios.get<Blog[]>(
-      //   `${blog_service}/api/v1/blog/all?searchQuery=${searchQuery}&category=${category}`
-      // );
       const { data } = await axios.get<Blog[]>(
-  `/api/blogs?searchQuery=${searchQuery}&category=${category}`
-);
+        `${blog_service}/api/v1/blogs?searchQuery=${searchQuery}&category=${category}`
+      );
+    
 
       setBlogs(data);
     } catch (error) {
@@ -131,22 +128,15 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
   async function getSavedBlogs() {
     const token = Cookies.get("token");
     try {
-      // const { data } = await axios.get<SavedBlogType[]>(
-      //   `${blog_service}/api/v1/blog/saved/all`,
-      //   {
-      //     headers: {
-      //       Authorization: `Bearer ${token}`,
-      //     },
-      //   }
-      // );
       const { data } = await axios.get<SavedBlogType[]>(
-  `/api/blogs/saved`,
-  {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  }
-);
+        `${blog_service}/api/v1/blog/saved/all`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      
       setSavedBlogs(data);
     } catch (error) {
       console.log(error);

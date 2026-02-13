@@ -1,44 +1,86 @@
-"use client";
+// "use client";
 
-import React, { useEffect, useState } from "react";
-import { useAppData, user_service, User } from "@/context/AppContext";
+// import React, { useEffect, useState } from "react";
+// import { useAppData, user_service, User } from "@/context/AppContext";
+// import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+// import { Avatar, AvatarImage } from "@radix-ui/react-avatar";
+// import Loading from "@/components/loading";
+// import { Facebook, Instagram, Linkedin } from "lucide-react";
+// import { useParams } from "next/navigation";
+// import axios from "axios";
+
+// const UserProfilePage = () => {
+//   const [user, setUser] = useState<User | null>(null);
+//   const [loading, setLoading] = useState<boolean>(false);
+
+//   const { id } = useParams<{ id: string }>();
+
+//   async function fetchUser() {
+//     try {
+//       setLoading(true);
+//       const { data } = await axios.get<User>(
+//         `${user_service}/api/v1/user/${id}`
+//       );
+//       setUser(data);
+//     } catch (error) {
+//       console.log(error);
+//     } finally {
+//       setLoading(false);
+//     }
+//   }
+
+//   useEffect(() => {
+//     if (id) {
+//       fetchUser();
+//     }
+//   }, [id]);
+
+//   if (loading || !user) {
+//     return <Loading />;
+//   }
+"use client";
+import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Avatar, AvatarImage } from "@radix-ui/react-avatar";
+import { useAppData, User, user_service } from "@/context/AppContext";
+import React, { useEffect, useRef, useState } from "react";
+import Cookies from "js-cookie";
+import axios from "axios";
+import toast from "react-hot-toast";
 import Loading from "@/components/loading";
 import { Facebook, Instagram, Linkedin } from "lucide-react";
-import { useParams } from "next/navigation";
-import axios from "axios";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { redirect, useParams, useRouter } from "next/navigation";
 
 const UserProfilePage = () => {
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
 
-  const { id } = useParams<{ id: string }>();
+  const { id } = useParams();
 
   async function fetchUser() {
     try {
-      setLoading(true);
-      const { data } = await axios.get<User>(
-        `${user_service}/api/v1/user/${id}`
-      );
+      const { data } = await axios.get<User>(`${user_service}/api/v1/user/${id}`);
       setUser(data);
     } catch (error) {
       console.log(error);
-    } finally {
-      setLoading(false);
     }
   }
 
   useEffect(() => {
-    if (id) {
-      fetchUser();
-    }
+    fetchUser();
   }, [id]);
 
-  if (loading || !user) {
+  if (!user) {
     return <Loading />;
   }
-
   return (
     <div className="flex justify-center items-center min-h-screen p-4">
       <Card className="w-full max-w-xl shadow-lg border rounded-2xl p-6">
