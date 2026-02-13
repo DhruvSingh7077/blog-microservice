@@ -88,24 +88,24 @@ export const getAllBlogs = TryCatch(async (req: Request, res: Response) => {
         SELECT * FROM blogs 
         WHERE (title ILIKE ${"%" + searchQuery + "%"} OR description ILIKE ${"%" + searchQuery + "%"}) 
         AND category = ${category} 
-        ORDER BY created_at DESC
+        ORDER BY create_at DESC
       `;
     } else if (searchQuery) {
       blogs = await sql`
         SELECT * FROM blogs 
         WHERE (title ILIKE ${"%" + searchQuery + "%"} OR description ILIKE ${"%" + searchQuery + "%"})  
-        ORDER BY created_at DESC
+        ORDER BY create_at DESC
       `;
     } else if (category) {
       blogs = await sql`
         SELECT * FROM blogs 
         WHERE category = ${category} 
-        ORDER BY created_at DESC
+        ORDER BY create_at DESC
       `;
     } else {
       blogs = await sql`
         SELECT * FROM blogs 
-        ORDER BY created_at DESC
+        ORDER BY create_at DESC
       `;
     }
 
@@ -263,7 +263,7 @@ export const getAllComments = TryCatch(async (req: Request, res: Response) => {
     const comments = await sql`
       SELECT * FROM comments 
       WHERE blogid = ${blogid} 
-      ORDER BY created_at DESC
+      ORDER BY create_at DESC
     `;
 
     console.log(`✅ Fetched ${comments.length} comments`);
@@ -384,7 +384,7 @@ export const getSavedBlog = TryCatch(async (req: AuthenticatedRequest, res: Resp
       FROM saved_blogs sb
       JOIN blogs b ON sb.blogid = b.id
       WHERE sb.userid = ${req.user._id}
-      ORDER BY sb.created_at DESC
+      ORDER BY sb.create_at DESC
     `;
 
     console.log(`✅ Fetched ${savedBlogs.length} saved blogs`);
