@@ -32,7 +32,7 @@ app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-const port = process.env.PORT || 5002;
+const port = process.env.PORT ;
 
 // ===== Redis Client with Better Error Handling =====
 export const redisClient = createClient({
