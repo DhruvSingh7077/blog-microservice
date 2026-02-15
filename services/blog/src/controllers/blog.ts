@@ -341,7 +341,7 @@ export const savedBlog = TryCatch(async (req: AuthenticatedRequest, res: Respons
   try {
     // Check if already saved
     const existing = await sql`
-      SELECT * FROM saved_blogs 
+      SELECT * FROM savedblogs 
       WHERE blogid = ${blogid} AND userid = ${req.user._id}
     `;
 
@@ -351,7 +351,7 @@ export const savedBlog = TryCatch(async (req: AuthenticatedRequest, res: Respons
 
     // Save the blog
     await sql`
-      INSERT INTO saved_blogs (blogid, userid) 
+      INSERT INTO savedblogs (blogid, userid) 
       VALUES (${blogid}, ${req.user._id})
     `;
 
@@ -381,7 +381,7 @@ export const getSavedBlog = TryCatch(async (req: AuthenticatedRequest, res: Resp
     // Get saved blog IDs for this user
     const savedBlogs = await sql`
       SELECT sb.*, b.* 
-      FROM saved_blogs sb
+      FROM savedblogs sb
       JOIN blogs b ON sb.blogid = b.id
       WHERE sb.userid = ${req.user._id}
       ORDER BY sb.create_at DESC
@@ -413,7 +413,7 @@ export const unsaveBlog = TryCatch(async (req: AuthenticatedRequest, res: Respon
 
   try {
     const result = await sql`
-      DELETE FROM saved_blogs 
+      DELETE FROM savedblogs 
       WHERE blogid = ${blogid} AND userid = ${req.user._id}
       RETURNING *
     `;

@@ -13,7 +13,7 @@ import {
 import { useDebounce } from "@/hooks/useDebounce";
 export const user_service = "https://user-service2-8us6.onrender.com";
 export const author_service = "https://author-service-hejr.onrender.com";
- export const blog_service = "https://blog-service-xq4m.onrender.com";
+ export const blog_service = "https://blog-microservice-8u4k.onrender.com";
 
 export const blogCategories = [
   "Technology",
@@ -129,7 +129,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
     const token = Cookies.get("token");
     try {
       const { data } = await axios.get<SavedBlogType[]>(
-        `${blog_service}/api/v1/blog/saved/all`,
+        `${blog_service}/api/v1/blogs/saved`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

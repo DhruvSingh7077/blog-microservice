@@ -325,7 +325,7 @@ const EditBlogPage = () => {
       setLoading(true);
       try {
      const { data } = await axios.get<SingleBlogResponse>(
-  `${blog_service}/api/v1/blog/${id}`
+  `${blog_service}/api/v1/blogs/${id}`
 );
 
 const blog = data.blog;
