@@ -379,13 +379,33 @@ export const getSavedBlog = TryCatch(async (req: AuthenticatedRequest, res: Resp
 
   try {
     // Get saved blog IDs for this user
+    // const savedBlogs = await sql`
+    //   SELECT sb.*, b.* 
+    //   FROM savedblogs sb
+    //   JOIN blogs b ON sb.blogid = b.id
+    //   WHERE sb.userid = ${req.user._id}
+    //   ORDER BY sb.create_at DESC
+    // `;
     const savedBlogs = await sql`
-      SELECT sb.*, b.* 
-      FROM savedblogs sb
-      JOIN blogs b ON sb.blogid = b.id
-      WHERE sb.userid = ${req.user._id}
-      ORDER BY sb.create_at DESC
-    `;
+  SELECT 
+    sb.id as saved_id,
+    sb.create_at as saved_create_at,
+    sb.userid,
+    sb.blogid,
+    b.id,
+    b.title,
+    b.description,
+    b.blogcontent,
+    b.image,
+    b.category,
+    b.author,
+    b.create_at
+  FROM savedblogs sb
+  JOIN blogs b ON sb.blogid = b.id
+  WHERE sb.userid = ${req.user._id}
+  ORDER BY sb.create_at DESC
+`;
+
 
     console.log(`✅ Fetched ${savedBlogs.length} saved blogs`);
 
